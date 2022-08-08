@@ -1,5 +1,5 @@
 
-This is a python script I'm working on that I'm hoping to release publicly once any kinds have been figured out.
+This is a python script I'm working on that I'm hoping to release publicly once any kinks have been figured out.
 
 In the meantime you are free to use it, and I appreciate any feedback.
 
@@ -56,7 +56,7 @@ You can explicitly connect and close to the database as needed, although as we'l
 
 You can download the columns from your dictionary using the download columns command. The command takes a list of tables from your database that you want to save the columns from.
 
-`mysql.downloadColumns(['TableA'],['TableB'])`
+`mysql.downloadColumns(['TableA','TableB'])`
 
 This saves a dictionary of the columns as objects within your SQLConnector object. 
 

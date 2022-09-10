@@ -102,7 +102,7 @@ If the SQL column type is json, SQLConnector can automatically convert the json 
 
 ## Using Columns
 
-###Downloading Columns
+### Downloading Columns
 
 **Structure** SQLConnector.setColumnDefault(tables)
 
@@ -133,7 +133,7 @@ mysql.tables['TestA']['ColumnX'].type
 
 The following attributes for each column are stored: type, null, key, default, extra. These attributes are the same name and value as mysql stores them as. To understand what each one means, visit the mysql documentation.
 
-###Column Defaults
+### Column Defaults
 
 **Structure** SQLConnector.setColumnDefault(table,columnDictionary)
 

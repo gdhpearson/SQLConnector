@@ -35,129 +35,158 @@ mysql = SQLConnector(loginInfo)
 
 _Note: For security reasons you generally shouldn't be writing your login info directly into your Python file and you are probably better importing this from a separate file._
 
-## Functions
-
 ### Test Connection
 
 To test you've connected successfully you can use the testConnection function. This just returns the verion MySQL you are running, but only if the connection is successful.
 
 ```
 mysql.testConnection()
->>(('8.0.26',),)
+>> (('8.0.26',),)
 ```
 
 ### Connecting
 
 You can explicitly connect and close to the database as needed, although as we'll see in a second, this isn't necessary.
 
-`mysql.connect()`
+```
+mysql.connect()
+>> Connection Made
+```
 
-### Using Columns
+*Note: Sending incorrect login information will lead to an error*
 
-You can download the columns from your dictionary using the download columns command. The command takes a list of tables from your database that you want to save the columns from.
+###Commit and Close
 
-`mysql.downloadColumns(['TableA','TableB'])`
+You can close the mysql connection with the commit and close function. This automatically commits any existing changes sent to the mysql database and then closes the connection
+
+```
+sql.commitAndClose()
+>> SQL Connection Closed
+```
+
+You can set SQLConnector to automatically commit and close after every query via the default settings if desired.
+
+### Default Settings
+
+There are two attributes to the sql connector that have default settings. All of these are True/False booleans. These can be changed manually. *Note: You can set these settings to things other than True or False, but doing so will cause fatal errors in almost any other action.*
+
+When you first create the sql connector object, both of these items are set to False by default.
+
+Whatever the default values are, these can be overridden in each call.
+
+For instance, the mysql.read function accepts the optional arguments *returnAsDict* and *closeWhenDone*. These default to the default values for the attributes, but can be overridden in each call. 
+
+The two settings that can be toggled on or off (true or false) are.
+
+**returnAsDict**
+
+One of the key design features of SQLConnector was to be able to read from mysql and return the results as a list of python dictionaries, making mysql queries more Python friendly. By default mysql queries are returned as a tuple of tuples.
+
+`mysql.returnAsDict = True`
+
+*Note: To return a query as a list of dictionaries, you will have to have downloaded the columns for that table. See more on that below.*
+
+**closeConnectionAfterEachQuery**
+
+By default SQLConnector assumes you want to keep your connection to mysql open and are sending multiple queries. However, if you want to close the connection after every query you can set this as true.
+
+`mysql.closeConnectionAfterEachQuery = True`
+
+**convertDownloadedJsons**
+
+If the SQL column type is json, SQLConnector can automatically convert the json type to a python or list, allowing easier conversion between python and JSON.
+
+`mysql.convertDownloadedJsons = True`
+
+*Note: When adding/updating data, if the downloaded column type (see below) is set to json, SQLConnector will automatically convert the given value to JSON irelevant of the above set default*
+
+## Using Columns
+
+###Downloading Columns
+
+**Structure** SQLConnector.setColumnDefault(tables)
+
+**Returns** string
+
+**Variables**
+*tables* = Either a list of tables from your database or a string with the name of one table that you want to save the columns from
+
+If successful the query returns a string confirming success.
+
+```
+mysql.downloadColumns(['TableA','TableB'])
+>> Sucessfully downloaded columns for TableA, TableB. Info on these table columns can be seen in the SQLConnector.tables attribute of your SQLConnector object.
+```
 
 This saves a dictionary of the columns as objects within your SQLConnector object. 
 
 _Note: This doesn't refresh. It saves them locally. If you updated your column settings you would need to redownload again_
 
-The use of this is that it stores the default values, if your variable is requires, etc. as type variables. This becomes very useful as the script has inbuilt functions for dealing with variables.
+The main purpose for this command is it allows you to return read queries from mysql as dictionaries where the column names will be used as keys.
+
+If you want to examine the information on the columns you downloaded you can do so via the attributes.
 
 ```
-mysql.tables['TableA']['ColumnX'].type
->> 'varchar(10)'
+mysql.tables['TestA']['ColumnX'].type
+>> varchar(10)
 ```
 
-For instance, you can't send a dictionary of a list to MySQL as those are python types. Similarly MySQL can store JSON which isn't a python type. However, JSON can be easily converted to a Python Dict. Once the columns are downloaded, if you try to send a dictionary to the MySQL it will automatically convert it to a dictionary, and if you try to read a JSON file it will automatically convert it to a Python dictionary once the columns have been downloaded.
+The following attributes for each column are stored: type, null, key, default, extra. These attributes are the same name and value as mysql stores them as. To understand what each one means, visit the mysql documentation.
 
-You can also set a column as required within Python. Sometimes you may want to ensure, even though the MySQL table will accept a blank variables, that you want to ensure you never leave that value empty anyway.
+###Column Defaults
 
-Pass the function a table name as a string, and a list of columns in a string. It will then set those columns as required.
+**Structure** SQLConnector.setColumnDefault(table,columnDictionary)
 
-_Note: This is only for your Python file. Other MySQL queries will still be able to ignore those columns. It just means you can't ignore them in your script. The script will actually warn you of this on return._
+**Returns** string
+
+**Variables**
+*table* = name of table you want to set the defaults for
+*columnDictionary* = dictionary of key/value pairs where the keys are column names and values are the new default.
+
+The setColumnDefault function overwrites the set default for the column. When you add a row to a table, if the columns have been downloaded, SQLConnector will check if you have provided a value for each column. If there is a column with no value provided, and a default has been set then SQLConnector will automatically send the default value.
+
+Defaults that were already on the mysql side will be downloaded with the download columns function.
+
+*Note: This only sets the defaults for Python. It does not change the default settings in mysql. This means you can have different defaults set on the mysql side and on the Python side. Additionally, SQLConnector will not ensure you're given default value is valid for that column. For instance, it will gladly let you set the default value for a column of type integer to a string. This will lead to errors.*
+
+The function returns a string that informs you of the success of each column given.
 
 ```
-print(mysql.setAsRequired('TableA',['ColumnX','ColumnY']))
->> WARNING: Columns (['ColumnX', 'ColumnY']) set to required in table Table. However only sets required on Python end - not in MySql. Will only work on commands using this instance.
+sql.setColumnDefault('TestTable',{'User':'NA','Age':0,'Country':'US'})
+>> Default value for User set to NA
+>> WARNING: Age already had a default value of -99. This has now been overwritten with 0
+>> Could not set default value for Country - perhaps column is not in TestTable?'
 ```
 
-You can also use a similar command to set new defaults for columns. Here, instead of a list of columns, you pass a dictionary with the new default values.
-
-_Note: Again, these only work for this python script now elsewhere_
-
-```
-print(mysql.setDefaults('TableA',{'ColumnX':'X',
-                                'ColumnY':'Y'}))
->> WARNING: Defaults for TableA set. However only sets default on Python end - not in MySql. Will set values to given default if using Sql.add function, but not if using other MySQL syntax
-```
-
-### Reading and Writing to DB
+## Reading and Writing to DB
 
 The other functions mostly deal with core read/write functions.
 
 One nice thing is that you don't need to explicitly connect with any of these functions. If you try to read/write to MySQL the script will check if you are already connected, if not, then it will automatically connect for you. Therefore you don't need the explicit connect function given earlier.
 
-**Read**
+### Read
 
-The read function takes three required variables and one optional variable.
+**Structure** SQLConnector.read(tables)
 
-* The column containing the information as a string you want to retrieve. See note below about the all option.
-* The table you want to pull the data from as a string
-* A key/value pair containing the condition where the key is the column in the mysql table and the value is the value to check for. 
-* (Optional - keyFirst): Requires column is set to all (see below). keyFirst can be set to 'yes' or 1. Default is 0. If set to 'yes' or 1 it will include the key column in the MySQL table as the first item in the returned dictionary. Otherwise, keys are ignored.
-* (optional - returnAsDict): Requires column is set to all (see below). Also requires the table columns have been downloaded. returnAsDict can be set to 1 or yes. Default is 0. If set to 'yes' or 1 it will return each row as a dictionary whereby keys will be column names and values the returned value.
+**Returns** string
 
-**Add**
+**Variables**
+*tables* = Either a list of tables from your database or a string with the name of one table that you want to save the columns from
 
-The add function takes two values. The name of the table as a string, plus a dictionary of key value pairs where the keys are the names of the columns, and the values the insert values.
+### Insert
 
-```
-mysql.add('TableA',{'ColumnX:'Foo',
-                    'ColumnY:'Bar'})
->> 1 record inserted
-```
+**Structure** SQLConnector.setColumnDefault(table,data,closeWhenDone = Default)
 
-**Edit**
+**Returns** string
 
-The edit function takes three values. The table as a string. A key value pair for the condition where the key is the column name and the value is the condition to check for, and another dictionary with key, value pairs for the data to change.
+**Variables**
+*tables* = Either a list of tables from your database or a string with the name of one table that you want to save the columns from
 
-So to change any ColumnY value to 12 where ColumnX equals 'Foo'...
+## Automatic Type Conversion
 
-```
-mysql.edit('TableA',{'ColumnX':'Foo},{'ColumnY':12})
-```
+SQLConnector has inbuilt functions that help translate things into mysql friendly terms.
 
-**Edit or Add**
-
-The edit or add function is a special function that combines the edit and add function. It is specially designed for changing single rows of a table where you unsure of the value exists. For instance, if you want to update a row to have a timestamp corresponding to now, but you aren't sure if that value exists.
-
-The script will check if the condition is met. If the condition is met, it updates the row with the given value. If the condition is not met, then it will add a new row with the given values.
-
-The function takes four arguments. 
-* The table as a string
-* The condition as a key value pair where the key is the column name and the value is the condition to check for
-* The new values as a key, value pairs for the data to change
-* The new data to add as a dictionary if the condition is not met.
-
-For example, you have a table called users. The user does something and you want to update the time of their latest action, and if not then add them to the table.
-
-```
-mysql.editOrAdd('Users',{'Name':'George'},{'updateTime:time.time()},{'Name':'George','Age':34,'Country':'US','updateTime:time.time()})
->> Could not edit but successfully added: 1 record inserted
-```
-
-**Delete**
-
-The delete function takes two arguments. The name of the table plus a dictionary key/value pair where the key is the column in the mysql table and the value is the value to check for. 
-
-So to delete all values where ColumnX = 'Spam'...
-
-```
-mysql.delete('TableA',{'ColumnX','Spam'})
->> 4 rows were deleted
-```
-
+If a column type is json, SQL connector will automatically convert any given value to json. 
 
 
 

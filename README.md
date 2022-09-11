@@ -175,12 +175,23 @@ One nice thing is that you don't need to explicitly connect with any of these fu
 
 ### Insert
 
-**Structure** SQLConnector.setColumnDefault(table,data,closeWhenDone = Default)
+**Structure** SQLConnector.insert(table,data,closeWhenDone = Default)
 
 **Returns** string
 
 **Variables**
-*tables* = Either a list of tables from your database or a string with the name of one table that you want to save the columns from
+*table* = The table you want to update
+*data* = Dictionary of key/value pairs where keys are the names of the table columns and the values the information you want to insert.
+*closeWhenDone* = Boolean optional. See section on defaults above.
+
+Inserts a row into your mysql table. Returns a string confirming the row has been inserted.
+
+```
+sql.insert('TestTable',{'User':'Steve','Approved':False,'Sports_Liked':['Rugby,Table Tennis']})
+>> 1 record(s) inserted.
+```
+
+*Note: Currently you can only insert one row at a time. Hoping to improve this in future to allow multiple inserts with singular command*
 
 ## Automatic Type Conversion
 

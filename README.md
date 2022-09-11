@@ -108,7 +108,7 @@ If the SQL column type is json, SQLConnector can automatically convert the json 
 
 **Returns** string
 
-**Variables**
+**Variables**  
 *tables* = Either a list of tables from your database or a string with the name of one table that you want to save the columns from
 
 If successful the query returns a string confirming success.
@@ -139,8 +139,8 @@ The following attributes for each column are stored: type, null, key, default, e
 
 **Returns** string
 
-**Variables**
-*table* = name of table you want to set the defaults for
+**Variables**  
+*table* = name of table you want to set the defaults for.  
 *columnDictionary* = dictionary of key/value pairs where the keys are column names and values are the new default.
 
 The setColumnDefault function overwrites the set default for the column. When you add a row to a table, if the columns have been downloaded, SQLConnector will check if you have provided a value for each column. If there is a column with no value provided, and a default has been set then SQLConnector will automatically send the default value.
@@ -170,7 +170,7 @@ One nice thing is that you don't need to explicitly connect with any of these fu
 
 **Returns** string
 
-**Variables**
+**Variables**  
 *tables* = Either a list of tables from your database or a string with the name of one table that you want to save the columns from
 
 ### Insert
@@ -179,7 +179,7 @@ One nice thing is that you don't need to explicitly connect with any of these fu
 
 **Returns** string
 
-**Variables**
+**Variables**  
 *table* = The table you want to update.  
 *data* = Dictionary of key/value pairs where keys are the names of the table columns and the values the information you want to insert.  
 *closeWhenDone* = Boolean optional. See section on defaults above.  

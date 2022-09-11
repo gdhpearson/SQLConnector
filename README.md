@@ -180,9 +180,9 @@ One nice thing is that you don't need to explicitly connect with any of these fu
 **Returns** string
 
 **Variables**
-*table* = The table you want to update
-*data* = Dictionary of key/value pairs where keys are the names of the table columns and the values the information you want to insert.
-*closeWhenDone* = Boolean optional. See section on defaults above.
+*table* = The table you want to update.  
+*data* = Dictionary of key/value pairs where keys are the names of the table columns and the values the information you want to insert.  
+*closeWhenDone* = Boolean optional. See section on defaults above.  
 
 Inserts a row into your mysql table. Returns a string confirming the row has been inserted.
 
